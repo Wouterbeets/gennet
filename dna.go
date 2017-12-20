@@ -1,3 +1,3 @@
-package main
+package gennet
 
 type dna []gene

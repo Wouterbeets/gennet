@@ -1,4 +1,4 @@
-package main
+package gennet
 
 func newNn(dna dna) *nn {
 }

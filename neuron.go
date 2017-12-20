@@ -1,4 +1,4 @@
-package main
+package gennet
 
 type neuron struct {
 	inp     input
