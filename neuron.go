@@ -1,6 +1,7 @@
 package gennet
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 	"time"
@@ -22,12 +23,15 @@ func newNeuron(id int) *neuron {
 }
 
 func (neur *neuron) live() {
+	fmt.Println("neur live", neur.id)
 	for {
 		sum := float64(0)
 		nbSig := 0
 		for {
+			fmt.Println("looping ", neur.id)
 			select {
 			case sig := <-neur.inp:
+				fmt.Println("received inp", neur.id)
 				nbSig++
 				w, ok := neur.weights[sig.neuronID]
 				if !ok {
