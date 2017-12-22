@@ -2,10 +2,7 @@ package gennet
 
 import (
 	"fmt"
-	"math/rand"
 	"sort"
-
-	"github.com/MaxHalford/gago"
 )
 
 type dna []gene
@@ -34,10 +31,4 @@ func (d dna) Less(i, j int) bool {
 
 func (d dna) sort() {
 	sort.Sort(d)
-}
-
-func (d dna) Mutate(rng *rand.Rand) {
-	for _, g := range d {
-		gago.MutNormalFloat64(g[2:], 0.8, rng)
-	}
 }

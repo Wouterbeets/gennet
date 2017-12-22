@@ -47,12 +47,7 @@ func Test_DNA(t *testing.T) {
 
 func Test_mutate(t *testing.T) {
 	nn := newNN(2, 2, 6)
-	nn.addGene(gene{0, 4, 1, 1})
-	nn.addGene(gene{0, 5, 1, 1})
-	nn.addGene(gene{1, 4, 1, 1})
-	nn.addGene(gene{1, 5, 1, 1})
-	d := nn.DNA()
-	fmt.Println(d)
-	d.Mutate(rand.New(rand.NewSource(1)))
-	fmt.Println(d)
+	fmt.Println("before", nn.DNA())
+	nn.Mutate(rand.New(rand.NewSource(1)))
+	fmt.Println("after", nn.DNA())
 }
