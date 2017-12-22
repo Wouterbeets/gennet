@@ -22,6 +22,13 @@ func newNeuron(id int) *neuron {
 	}
 }
 
+func (neur *neuron) genes() (d dna) {
+	for k, v := range neur.weights {
+		d = append(d, gene{float64(k), float64(neur.id), v.weight, v.bias})
+	}
+	return d
+}
+
 func (neur *neuron) live() {
 	sum := float64(0)
 	nbSig := 0

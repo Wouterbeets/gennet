@@ -7,7 +7,6 @@ type weight struct {
 
 func newWeights() map[int]weight {
 	w := make(map[int]weight)
-	w[0] = weight{1, 0.5}
 	return w
 }
 

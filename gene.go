@@ -1,6 +1,6 @@
 package gennet
 
-type gene [4]float64
+type gene []float64
 
 func (g gene) sender() int {
 	return int(g[0])
