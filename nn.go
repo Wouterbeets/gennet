@@ -2,6 +2,7 @@ package gennet
 
 import (
 	"fmt"
+	"math/rand"
 )
 
 type nn struct {
@@ -11,9 +12,11 @@ type nn struct {
 }
 
 func (n *nn) In(input []float64) {
+	for _, neur := range n.neurs {
+		go neur.live()
+	}
 	for i, val := range input {
-		fmt.Println("len inp", len(n.inp), i, n.inp)
-		n.inp[i] <- signal{val: val, neuronID: i}
+		n.inp[i] <- signal{val: val, neuronID: 0}
 	}
 }
 
@@ -37,20 +40,20 @@ func newNN(nbIn, nbOut, maxSize int) *nn {
 		neur.addOut(middleNeur.inp)
 		n.inp = append(n.inp, neur.inp)
 		n.neurs[i] = neur
+		middleNeur.weights[i] = weight{rand.NormFloat64(), 0.5}
 	}
 	n.out = make(output, nbOut)
 	for i := 0; i < nbOut; i++ {
-		fmt.Println(i)
+		fmt.Println("adding", maxSize-(i+1))
 		n.out[i] = make(input)
 		neur := newNeuron(maxSize - (i + 1))
 		neur.addOut(n.out[i])
+
 		middleNeur.addOut(neur.inp)
 		n.neurs[maxSize-(i+1)] = neur
 	}
-	for _, neurs := range n.neurs {
-		go neurs.live()
-	}
 	fmt.Println("neural", n)
+
 	return n
 }
 

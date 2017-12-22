@@ -23,30 +23,27 @@ func newNeuron(id int) *neuron {
 }
 
 func (neur *neuron) live() {
-	fmt.Println("neur live", neur.id)
+	sum := float64(0)
+	nbSig := 0
 	for {
-		sum := float64(0)
-		nbSig := 0
-		for {
-			fmt.Println("looping ", neur.id)
-			select {
-			case sig := <-neur.inp:
-				fmt.Println("received inp", neur.id)
-				nbSig++
-				w, ok := neur.weights[sig.neuronID]
-				if !ok {
-					w = weight{rand.NormFloat64(), 0.5}
-					neur.weights[sig.neuronID] = w
-				}
-				sum += sig.val*w.weight + w.bias
-				if nbSig == len(neur.weights) {
-					neur.send(sum)
-					break
-				}
-			case <-time.After(time.Millisecond):
-				neur.send(sum)
-				break
+		fmt.Println("looping ", neur.id, "expecting", len(neur.weights), "received", nbSig)
+		select {
+		case sig := <-neur.inp:
+			fmt.Println("received inp", neur.id)
+			nbSig++
+			w, ok := neur.weights[sig.neuronID]
+			if !ok {
+				w = weight{rand.NormFloat64(), 0.5}
+				neur.weights[sig.neuronID] = w
 			}
+			sum += sig.val*w.weight + w.bias
+			if nbSig == len(neur.weights) {
+				neur.send(sum)
+				return
+			}
+		case <-time.After(time.Millisecond):
+			neur.send(sum)
+			return
 		}
 	}
 }
@@ -54,6 +51,7 @@ func (neur *neuron) live() {
 func (neur *neuron) send(sum float64) {
 	outVal := 1.0 / (1.0 + math.Exp(-sum))
 	for _, outChan := range neur.out {
+		fmt.Println("neur", neur.id, "sending")
 		outChan <- signal{val: outVal, neuronID: neur.id}
 	}
 }
