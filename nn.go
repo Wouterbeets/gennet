@@ -56,6 +56,7 @@ func newNN(nbIn, nbOut, maxSize int, d ...dna) *nn {
 		neur.addOut(n.out[i])
 		n.neurs[id] = neur
 	}
+
 	if len(d) == 1 {
 		n.addDNA(d[0])
 	} else {
@@ -130,4 +131,23 @@ func (n *nn) Mutate(rng *rand.Rand) {
 		gago.MutNormalFloat64(d[i][2:], 0.8, rng)
 	}
 	*n = *newNN(len(n.inp), len(n.out), n.maxSize, d)
+}
+
+func (n *nn) Crossover(cross gago.Genome, rng *rand.Rand) {
+	d := n.DNA().toFloat()
+	d2 := cross.(nn).DNA().toFloat()
+	gago.CrossUniformFloat64(d, d2, rng)
+	*n = *newNN(len(n.inp), len(n.out), n.maxSize, floatToDNA(d2))
+}
+
+func (n *nn) Clone() gago.Genome {
+	d := n.DNA()
+	d2 := make(dna, 0, len(d))
+	for _, g := range d {
+		g2 := make([]float64, 0, 4)
+		copy(g2, g)
+		d2 = append(d2, g2)
+	}
+	n2 = newNN(len(n.inp), len(n.out), n.maxSize, d2)
+	return n2
 }

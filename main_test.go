@@ -51,3 +51,13 @@ func Test_mutate(t *testing.T) {
 	nn.Mutate(rand.New(rand.NewSource(1)))
 	fmt.Println("after", nn.DNA())
 }
+
+func Test_mem(t *testing.T) {
+	nn := newNN(2, 1, 5)
+	nn.addGene(gene{2, 4, 1, 1})
+	nn.addGene(gene{4, 1, 1, 1})
+	nn.In([]float64{0, 1})
+	out := nn.Out()
+	fmt.Println("out", out)
+	fmt.Println(nn.DNA())
+}

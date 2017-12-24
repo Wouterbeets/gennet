@@ -32,3 +32,19 @@ func (d dna) Less(i, j int) bool {
 func (d dna) sort() {
 	sort.Sort(d)
 }
+func (d dna) toFloat() []float64 {
+	ret := make([]float64, 0, len(d)*4)
+	for _, g := range d {
+		ret = append(ret, g)
+	}
+	return ret
+}
+
+func floatToDNA(f []float64) dna {
+	d := make(dna, 0, len(f)/4)
+	for i := 0; i < len(f); i++ {
+		d = append(d, gene{f[i], f[i+1], f[i+2], f[i+3]})
+		i += 4
+	}
+	return d
+}
