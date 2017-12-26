@@ -9,7 +9,11 @@ type dna []gene
 
 func (d dna) String() (s string) {
 	for _, g := range d {
-		s += fmt.Sprintln("sen:", g[0], "rec:", g[1], "w:", g[2], "b:", g[3])
+		if len(g) == 4 {
+			s += fmt.Sprintln("sen:", g[0], "rec:", g[1], "w:", g[2], "b:", g[3])
+		} else {
+			s += fmt.Sprintf("%+v\n", g)
+		}
 	}
 	return s
 }
@@ -42,7 +46,8 @@ func (d dna) toFloat() []float64 {
 
 func floatToDNA(f []float64) dna {
 	d := make(dna, 0, len(f)/4)
-	for i := 0; i < len(f); i++ {
+	i := 0
+	for i < len(f) {
 		d = append(d, gene{f[i], f[i+1], f[i+2], f[i+3]})
 		i += 4
 	}

@@ -1,7 +1,6 @@
 package gennet
 
 import (
-	"fmt"
 	"math"
 	"math/rand"
 	"time"
@@ -16,7 +15,7 @@ type neuron struct {
 
 func newNeuron(id int) *neuron {
 	return &neuron{
-		inp:     make(input),
+		inp:     make(input, 3),
 		weights: newWeights(),
 		id:      id,
 	}
@@ -33,14 +32,12 @@ func (neur *neuron) live() {
 	sum := float64(0)
 	nbSig := 0
 	for {
-		fmt.Println("looping ", neur.id, "expecting", len(neur.weights), "received", nbSig)
 		select {
 		case sig := <-neur.inp:
-			fmt.Println("received inp", neur.id)
 			nbSig++
 			w, ok := neur.weights[sig.neuronID]
 			if !ok {
-				w = weight{rand.NormFloat64(), 0.5}
+				w = weight{rand.NormFloat64(), rand.NormFloat64()}
 				neur.weights[sig.neuronID] = w
 			}
 			sum += sig.val*w.weight + w.bias
@@ -48,7 +45,7 @@ func (neur *neuron) live() {
 				neur.send(sum)
 				return
 			}
-		case <-time.After(time.Millisecond):
+		case <-time.After(time.Microsecond):
 			neur.send(sum)
 			return
 		}
@@ -58,7 +55,6 @@ func (neur *neuron) live() {
 func (neur *neuron) send(sum float64) {
 	outVal := 1.0 / (1.0 + math.Exp(-sum))
 	for _, outChan := range neur.out {
-		fmt.Println("neur", neur.id, "sending")
 		outChan <- signal{val: outVal, neuronID: neur.id}
 	}
 }

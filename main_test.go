@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math/rand"
 	"testing"
+
+	"github.com/MaxHalford/gago"
 )
 
 func Test_newNN(t *testing.T) {
@@ -60,4 +62,22 @@ func Test_mem(t *testing.T) {
 	out := nn.Out()
 	fmt.Println("out", out)
 	fmt.Println(nn.DNA())
+}
+
+func Test_eval(t *testing.T) {
+	model := gago.Generational(makeGenomeMaker(3, 3, 100, dna{
+		gene{0, 3, 0.5, 0.1},
+		gene{1, 3, 0.5, 0.1},
+		gene{2, 3, 0.5, 0.1},
+		gene{3, 99, 0.5, 0.1},
+		gene{3, 97, 0.5, 0.1},
+		gene{3, 98, 0.5, 0.1},
+	}))
+	model.Initialize()
+	fmt.Println("start", model.Populations[0].Individuals[0].Genome.(*Nn).DNA())
+	for i := 0; i < 10000; i++ {
+		model.Evolve()
+		fmt.Printf("Best fitness at generation %d: %f\n", i, model.HallOfFame[0].Fitness)
+		fmt.Println(model.HallOfFame[0].Genome.(*Nn).DNA())
+	}
 }
