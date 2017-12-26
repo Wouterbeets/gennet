@@ -35,7 +35,7 @@ func (d dna) sort() {
 func (d dna) toFloat() []float64 {
 	ret := make([]float64, 0, len(d)*4)
 	for _, g := range d {
-		ret = append(ret, g)
+		ret = append(ret, g...)
 	}
 	return ret
 }

@@ -6,14 +6,15 @@ import (
 	"math/rand"
 )
 
-type nn struct {
+type Nn struct {
 	inp     []input
 	neurs   map[int]*neuron
 	out     output
 	maxSize int
+	Eval func () float64
 }
 
-func (n *nn) In(input []float64) {
+func (n *Nn) In(input []float64) {
 	for _, neur := range n.neurs {
 		go neur.live()
 	}
@@ -22,7 +23,7 @@ func (n *nn) In(input []float64) {
 	}
 }
 
-func (n *nn) Out() []float64 {
+func (n *Nn) Out() []float64 {
 	out := []float64{}
 	for _, outChan := range n.out {
 		out = append(out, (<-outChan).val)
@@ -30,8 +31,8 @@ func (n *nn) Out() []float64 {
 	return out
 }
 
-func newNN(nbIn, nbOut, maxSize int, d ...dna) *nn {
-	n := new(nn)
+func newNN(nbIn, nbOut, maxSize int, d ...dna) *Nn {
+	n := new(Nn)
 	n.maxSize = maxSize
 	n.inp = make([]input, 0, 2)
 	n.neurs = make(map[int]*neuron)
@@ -70,7 +71,7 @@ func newNN(nbIn, nbOut, maxSize int, d ...dna) *nn {
 	return n
 }
 
-func (n *nn) String() string {
+func (n *Nn) String() string {
 	s := ""
 	for id, neur := range n.neurs {
 		s += fmt.Sprintln(id, neur.weights)
@@ -78,7 +79,7 @@ func (n *nn) String() string {
 	return s
 }
 
-func (n *nn) DNA() (d dna) {
+func (n *Nn) DNA() (d dna) {
 	for _, neur := range n.neurs {
 		if neur.id >= len(n.inp) {
 			d = append(d, neur.genes()...)
@@ -88,7 +89,7 @@ func (n *nn) DNA() (d dna) {
 	return d
 }
 
-func (n *nn) addGene(g gene) {
+func (n *Nn) addGene(g gene) {
 	rec, ok := n.neurs[g.receiver()]
 	if !ok {
 		rec = &neuron{
@@ -112,13 +113,13 @@ func (n *nn) addGene(g gene) {
 	rec.weights[g.sender()] = weight{g.weight(), g.bias()}
 }
 
-func (n *nn) addDNA(d dna) {
+func (n *Nn) addDNA(d dna) {
 	for _, g := range d {
 		n.addGene(g)
 	}
 }
 
-func (n *nn) Mutate(rng *rand.Rand) {
+func (n *Nn) Mutate(rng *rand.Rand) {
 	d := n.DNA()
 	for i := range d {
 		gago.MutNormalFloat64(d[i][:2], 0.1, rng)
@@ -133,14 +134,16 @@ func (n *nn) Mutate(rng *rand.Rand) {
 	*n = *newNN(len(n.inp), len(n.out), n.maxSize, d)
 }
 
-func (n *nn) Crossover(cross gago.Genome, rng *rand.Rand) {
+func (n *Nn) Crossover(cross gago.Genome, rng *rand.Rand) (gago.Genome, gago.Genome){
 	d := n.DNA().toFloat()
-	d2 := cross.(nn).DNA().toFloat()
+	d2 := cross.(*Nn).DNA().toFloat()
 	gago.CrossUniformFloat64(d, d2, rng)
-	*n = *newNN(len(n.inp), len(n.out), n.maxSize, floatToDNA(d2))
+	ret := newNN(len(n.inp), len(n.out), n.maxSize, floatToDNA(d))
+	ret2 := newNN(len(n.inp), len(n.out), n.maxSize, floatToDNA(d2))
+	return ret, ret2
 }
 
-func (n *nn) Clone() gago.Genome {
+func (n *Nn) Clone() gago.Genome {
 	d := n.DNA()
 	d2 := make(dna, 0, len(d))
 	for _, g := range d {
@@ -148,6 +151,18 @@ func (n *nn) Clone() gago.Genome {
 		copy(g2, g)
 		d2 = append(d2, g2)
 	}
-	n2 = newNN(len(n.inp), len(n.out), n.maxSize, d2)
+	n2 := newNN(len(n.inp), len(n.out), n.maxSize, d2)
 	return n2
+}
+
+func (n *Nn) Evaluate() float64 {
+	if n.Eval != nil {
+		return n.Eval()
+	}else  {
+		return 1
+	}
+}
+
+func makeGenome(rng *rand.Rand) gago.Genome {
+	return newNN(2,2,6)
 }
