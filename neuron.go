@@ -3,7 +3,6 @@ package gennet
 import (
 	"math"
 	"math/rand"
-	"time"
 )
 
 type neuron struct {
@@ -11,13 +10,15 @@ type neuron struct {
 	weights map[int]weight
 	out     output
 	id      int
+	die     chan bool
 }
 
 func newNeuron(id int) *neuron {
 	return &neuron{
-		inp:     make(input, 3),
+		inp:     make(input, 1),
 		weights: newWeights(),
 		id:      id,
+		die:     make(chan bool),
 	}
 }
 
@@ -31,6 +32,7 @@ func (neur *neuron) genes() (d dna) {
 func (neur *neuron) live() {
 	sum := float64(0)
 	nbSig := 0
+	kill := make(chan bool)
 	for {
 		select {
 		case sig := <-neur.inp:
@@ -42,21 +44,27 @@ func (neur *neuron) live() {
 			}
 			sum += sig.val*w.weight + w.bias
 			if nbSig == len(neur.weights) {
-				neur.send(sum)
-				return
+				neur.send(sum, kill)
+				nbSig = 0
 			}
-		case <-time.After(time.Microsecond):
-			neur.send(sum)
+		case <-neur.die:
+			kill <- true
 			return
 		}
 	}
 }
 
-func (neur *neuron) send(sum float64) {
+func (neur *neuron) send(sum float64, kill <-chan bool) {
 	outVal := 1.0 / (1.0 + math.Exp(-sum))
-	for _, outChan := range neur.out {
-		outChan <- signal{val: outVal, neuronID: neur.id}
-	}
+	go func(id int, out output, val float64) {
+		for _, outChan := range out {
+			select {
+			case outChan <- signal{val, id}:
+			case <-kill:
+				return
+			}
+		}
+	}(neur.id, neur.out, outVal)
 }
 
 func (neur *neuron) addOut(inp input) {
