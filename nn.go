@@ -215,34 +215,48 @@ func makeGenomeMaker(inp, out, max int, d ...dna) func(*rand.Rand) gago.Genome {
 }
 
 func orGate(n *Nn) float64 {
-	n.In([]float64{1, 1})
-	out, err := n.Out()
-	if err != nil {
-		return 1
+	num := 10
+	test := make([][]float64, num)
+	for i := 0; i < num; i ++ {
+		test[i] = []float64{
+			float64(rand.Intn(2)),
+			float64(rand.Intn(2)),
+		}
 	}
-	vout := (1 - out[0]) * .25
-
-	n.In([]float64{1, 0})
-	out, err = n.Out()
-	if err != nil {
-		return 1
+	score := float64(0)
+	for _, t := range test {
+		switch {
+		case t[0] == float64(1) && t[1] == float64(1):
+			n.In(t)
+			out, err := n.Out()
+			if err != nil {
+				return 1
+			}
+			score += (1- out[0]) * (100 / num / 100)
+		case t[0] == float64(0) && t[1] == float64(0):
+			n.In(t)
+			out, err := n.Out()
+			if err != nil {
+				return 1
+			}
+			score += (1- out[0]) * (100 / num / 100)
+		case t[0] == float64(0) && t[1] == float64(1):
+			n.In(t)
+			out, err := n.Out()
+			if err != nil {
+				return 1
+			}
+			score += out[0] * (100 / num / 100)
+		case t[0] == float64(1) && t[1] == float64(0):
+			n.In(t)
+			out, err := n.Out()
+			if err != nil {
+				return 1
+			}
+			score += out[0] * (100 / num / 100)
+		}
 	}
-	vout += out[0] * .25
-
-	n.In([]float64{0, 0})
-	out, err = n.Out()
-	if err != nil {
-		return 1
-	}
-	vout += (1 - out[0]) * .25
-
-	n.In([]float64{0, 1})
-	out, err = n.Out()
-	if err != nil {
-		return 1
-	}
-	vout += out[0] * .25
-	return -vout
+	return -score
 }
 
 //func rpc(n *Nn) float64 {
