@@ -146,13 +146,6 @@ func (n *Nn) addDNA(d dna) {
 func (n *Nn) Mutate(rng *rand.Rand) {
 	d := n.DNA()
 	for i := range d {
-		gago.MutNormalFloat64(d[i][:2], 0.3, rng)
-		if d[i].sender() < 0 || d[i].sender() >= n.maxSize {
-			d[i][0] = float64(rng.Intn(n.maxSize))
-		}
-		if d[i].receiver() < 0 || d[i].receiver() >= n.maxSize {
-			d[i][1] = float64(rng.Intn(n.maxSize))
-		}
 		gago.MutNormalFloat64(d[i][2:], 0.8, rng)
 	}
 	if rng.Int()%10 == 0 {
@@ -168,30 +161,12 @@ func (n *Nn) Mutate(rng *rand.Rand) {
 func (n *Nn) Crossover(cross gago.Genome, rng *rand.Rand) {
 	d := n.DNA()
 	d2 := cross.(*Nn).DNA()
-	for len(d) < len(d2) {
-		d = append(d, gene{
-			float64(rng.Intn(n.maxSize)),
-			float64(rng.Intn(n.maxSize)),
-			rng.NormFloat64(),
-			rng.NormFloat64()})
-	}
-	for len(d2) < len(d) {
-		d2 = append(d2, gene{
-			float64(rng.Intn(n.maxSize)),
-			float64(rng.Intn(n.maxSize)),
-			rng.NormFloat64(),
-			rng.NormFloat64()})
-	}
 	for i := range d {
 		if i < len(d2) {
 			if rng.Int()%2 == 0 {
 				copy(d[i], d2[i])
 			} else {
 				copy(d2[i], d[i])
-			}
-		} else if len(d2) > 0 {
-			if rng.Int()%2 == 0 {
-				copy(d[i], d2[rng.Intn(len(d2))])
 			}
 		}
 	}
@@ -241,33 +216,33 @@ func makeGenomeMaker(inp, out, max int, d ...dna) func(*rand.Rand) gago.Genome {
 
 func orGate(n *Nn) float64 {
 	n.In([]float64{1, 1})
-	out3, err := n.Out()
-	if err != nil {
-		return 1
-	}
-	n.In([]float64{1, 0})
-	out2, err := n.Out()
-	if err != nil {
-		return 1
-	}
-	n.In([]float64{0, 0})
-	out4, err := n.Out()
-	if err != nil {
-		return 1
-	}
-	n.In([]float64{0, 1})
 	out, err := n.Out()
 	if err != nil {
 		return 1
 	}
-	vout := out[0]
-	vout2 := out2[0]
-	vout3 := out3[0]
-	vout4 := out4[0]
-	vout3 = 1 - vout3
-	vout4 = 1 - vout4
-	score := (vout + vout2 + vout3 + vout4) / 4
-	return -score
+	vout := (1 - out[0]) * .25
+
+	n.In([]float64{1, 0})
+	out, err = n.Out()
+	if err != nil {
+		return 1
+	}
+	vout += out[0] * .25
+
+	n.In([]float64{0, 0})
+	out, err = n.Out()
+	if err != nil {
+		return 1
+	}
+	vout += (1 - out[0]) * .25
+
+	n.In([]float64{0, 1})
+	out, err = n.Out()
+	if err != nil {
+		return 1
+	}
+	vout += out[0] * .25
+	return -vout
 }
 
 //func rpc(n *Nn) float64 {
